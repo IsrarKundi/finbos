@@ -1,4 +1,4 @@
-package app.finbos.mobile
+package --help
 
 import io.flutter.embedding.android.FlutterActivity
 
