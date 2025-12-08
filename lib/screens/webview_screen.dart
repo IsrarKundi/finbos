@@ -358,11 +358,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
                   },
                 ),
               ),
+           
             ],
           )
               : NoInternetWidget(onRetry: _handleRetry),
           extendBody: true,
-          bottomNavigationBar: (_hasInternet && !_isOnAuthPage && !_showSplash)
+          bottomNavigationBar: (_hasInternet && !_showSplash)
               ? FancyBottomNavBar(
             selectedIndex: _navController.selectedIndex,
             onTabChange: _onTabChange,

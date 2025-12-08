@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "938059660740",
+    "project_id": "finbos-2b19f",
+    "storage_bucket": "finbos-2b19f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:938059660740:android:e171b2cf9cfa4befdd7891",
+        "android_client_info": {
+          "package_name": "app.finbos.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDC5QQ5LgOWjZMEtnb_iM2yvgah2tCLXJU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
