@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,8 +11,10 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp();
   
-  // Initialize Push Notification Service
-  await PushNotificationService.instance.initialize();
+  // Initialize Push Notification Service (Android only)
+  if (Platform.isAndroid) {
+    await PushNotificationService.instance.initialize();
+  }
   
   // Set system UI overlay style for the entire app
   SystemChrome.setSystemUIOverlayStyle(
