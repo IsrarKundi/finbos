@@ -129,71 +129,71 @@ class _WebViewScreenState extends State<WebViewScreen> {
     }
   }
 
-  Future<void> _hideSocialLoginOptions(
-    InAppWebViewController controller,
-  ) async {
-    try {
-      await controller.evaluateJavascript(
-        source: """
-        (function() {
-          if (window.socialHiderAdded) return;
-          window.socialHiderAdded = true;
+  // Future<void> _hideSocialLoginOptions(
+  //   InAppWebViewController controller,
+  // ) async {
+  //   try {
+  //     await controller.evaluateJavascript(
+  //       source: """
+  //       (function() {
+  //         if (window.socialHiderAdded) return;
+  //         window.socialHiderAdded = true;
 
-          function hideElements() {
-            const currentUrl = window.location.href.toLowerCase();
-            const isAuthPage = currentUrl.includes('login') || 
-                               currentUrl.includes('signin') || 
-                               currentUrl.includes('signup') ||
-                               currentUrl.includes('register') ||
-                               currentUrl.includes('auth');
-            
-            if (!isAuthPage) return;
+  //         function hideElements() {
+  //           const currentUrl = window.location.href.toLowerCase();
+  //           const isAuthPage = currentUrl.includes('login') || 
+  //                              currentUrl.includes('signin') || 
+  //                              currentUrl.includes('signup') ||
+  //                              currentUrl.includes('register') ||
+  //                              currentUrl.includes('auth');
+  //           
+  //           if (!isAuthPage) return;
 
-            const keywords = ['google', 'facebook', 'microsoft'];
-            const elements = document.querySelectorAll('button, a, div[role="button"]');
-            
-            elements.forEach(el => {
-              const text = (el.innerText || '').toLowerCase();
-              const hasKeyword = keywords.some(keyword => text.includes(keyword));
-              
-              if (hasKeyword) {
-                if (text.includes('continue') || text.includes('sign') || text.includes('log') || text.includes('with')) {
-                   el.style.display = 'none';
-                }
-              }
-            });
+  //           const keywords = ['google', 'facebook', 'microsoft'];
+  //           const elements = document.querySelectorAll('button, a, div[role="button"]');
+  //           
+  //           elements.forEach(el => {
+  //             const text = (el.innerText || '').toLowerCase();
+  //             const hasKeyword = keywords.some(keyword => text.includes(keyword));
+  //             
+  //             if (hasKeyword) {
+  //               if (text.includes('continue') || text.includes('sign') || text.includes('log') || text.includes('with')) {
+  //                  el.style.display = 'none';
+  //               }
+  //             }
+  //           });
 
-            // Hide OR separator
-            const separators = document.querySelectorAll('div, span, p');
-            separators.forEach(el => {
-              const text = (el.innerText || '').toLowerCase().trim();
-              // Check for "or" with dashes or just "or"
-              if (text === 'or' || text.includes('---or---') || (text.includes('or') && text.includes('---'))) {
-                 // Ensure we are targeting the leaf node or a specific separator container
-                 if (el.children.length === 0) {
-                    el.style.display = 'none';
-                 }
-              }
-            });
-          }
+  //           // Hide OR separator
+  //           const separators = document.querySelectorAll('div, span, p');
+  //           separators.forEach(el => {
+  //             const text = (el.innerText || '').toLowerCase().trim();
+  //             // Check for "or" with dashes or just "or"
+  //             if (text === 'or' || text.includes('---or---') || (text.includes('or') && text.includes('---'))) {
+  //                // Ensure we are targeting the leaf node or a specific separator container
+  //                if (el.children.length === 0) {
+  //                   el.style.display = 'none';
+  //                }
+  //             }
+  //           });
+  //         }
 
-          hideElements();
+  //         hideElements();
 
-          const observer = new MutationObserver((mutations) => {
-            hideElements();
-          });
-          
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true
-          });
-        })();
-      """,
-      );
-    } catch (e) {
-      // Ignore errors
-    }
-  }
+  //         const observer = new MutationObserver((mutations) => {
+  //           hideElements();
+  //         });
+  //         
+  //         observer.observe(document.body, {
+  //           childList: true,
+  //           subtree: true
+  //         });
+  //       })();
+  //     """,
+  //     );
+  //   } catch (e) {
+  //     // Ignore errors
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -390,7 +390,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
                               }
 
                               // Inject JavaScript to hide social login options
-                              await _hideSocialLoginOptions(controller);
+                              // await _hideSocialLoginOptions(controller);
 
                               // Check if on login/auth pages after logout
                               if (url != null) {
