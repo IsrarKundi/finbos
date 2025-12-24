@@ -4,21 +4,23 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/webview_screen.dart';
 import 'services/push_notification_service.dart';
+import 'services/storage_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Initialize Storage Service
+  await StorageService.instance.initialize();
+
   // Initialize Firebase with explicit options (avoids iOS init issues)
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   // Initialize Push Notification Service (Android only)
   if (Platform.isAndroid) {
     await PushNotificationService.instance.initialize();
   }
-  
+
   // Set system UI overlay style for the entire app
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -29,10 +31,10 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
+
   // Enable edge-to-edge mode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  
+
   runApp(const MyApp());
 }
 

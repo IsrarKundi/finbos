@@ -1,6 +1,6 @@
 class BottomNavController {
   int selectedIndex = 0;
-  
+
   final List<NavItem> navItems = [
     NavItem(
       url: 'https://finbos.app/Dashboard',
@@ -21,6 +21,7 @@ class BottomNavController {
       url: 'https://finbos.app/Settings',
       label: 'Settings',
       iconData: null,
+      isNative: true,
     ),
   ];
 
@@ -32,6 +33,10 @@ class BottomNavController {
     selectedIndex = index;
   }
 
+  bool isCurrentTabNative() {
+    return navItems[selectedIndex].isNative;
+  }
+
   String getUrlByIndex(int index) {
     return navItems[index].url;
   }
@@ -41,10 +46,12 @@ class NavItem {
   final String url;
   final String label;
   final dynamic iconData;
+  final bool isNative;
 
   NavItem({
     required this.url,
     required this.label,
     this.iconData,
+    this.isNative = false,
   });
 }

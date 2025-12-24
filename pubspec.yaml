@@ -42,6 +42,11 @@ dependencies:
   firebase_core: ^4.2.1
   liquid_glass_ui: ^0.4.0
   liquid_glass_renderer: ^0.2.0-dev.4
+  share_plus: ^10.1.4
+  in_app_review: ^2.0.9
+  line_icons: ^2.0.3
+  local_auth: ^2.3.0
+  shared_preferences: ^2.5.2
 
 dev_dependencies:
   flutter_test:

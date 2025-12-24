@@ -7,6 +7,9 @@ import '../controllers/webview_controller.dart' as controllers;
 import '../controllers/bottom_nav_controller.dart';
 import '../widgets/fancy_bottom_nav_bar.dart';
 import '../widgets/no_internet_widget.dart';
+import 'settings_screen.dart';
+import '../services/storage_service.dart';
+import '../services/biometric_service.dart';
 
 class WebViewScreen extends StatefulWidget {
   const WebViewScreen({super.key});
@@ -15,7 +18,8 @@ class WebViewScreen extends StatefulWidget {
   State<WebViewScreen> createState() => _WebViewScreenState();
 }
 
-class _WebViewScreenState extends State<WebViewScreen> {
+class _WebViewScreenState extends State<WebViewScreen>
+    with WidgetsBindingObserver {
   final controllers.WebViewController _webViewController =
       controllers.WebViewController();
   final BottomNavController _navController = BottomNavController();
@@ -23,16 +27,21 @@ class _WebViewScreenState extends State<WebViewScreen> {
   bool _showSplash = true;
   bool _hasInternet = true;
   bool _isOnAuthPage = false;
+  bool _isLocked = false;
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // Ensure splash is visible at start
     setState(() {
       _showSplash = true;
     });
+
+    // Check for biometric lock on startup
+    _checkBiometricLock();
 
     // Set status bar for splash screen
     SystemChrome.setSystemUIOverlayStyle(
@@ -141,21 +150,21 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   //         function hideElements() {
   //           const currentUrl = window.location.href.toLowerCase();
-  //           const isAuthPage = currentUrl.includes('login') || 
-  //                              currentUrl.includes('signin') || 
+  //           const isAuthPage = currentUrl.includes('login') ||
+  //                              currentUrl.includes('signin') ||
   //                              currentUrl.includes('signup') ||
   //                              currentUrl.includes('register') ||
   //                              currentUrl.includes('auth');
-  //           
+  //
   //           if (!isAuthPage) return;
 
   //           const keywords = ['google', 'facebook', 'microsoft'];
   //           const elements = document.querySelectorAll('button, a, div[role="button"]');
-  //           
+  //
   //           elements.forEach(el => {
   //             const text = (el.innerText || '').toLowerCase();
   //             const hasKeyword = keywords.some(keyword => text.includes(keyword));
-  //             
+  //
   //             if (hasKeyword) {
   //               if (text.includes('continue') || text.includes('sign') || text.includes('log') || text.includes('with')) {
   //                  el.style.display = 'none';
@@ -182,7 +191,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   //         const observer = new MutationObserver((mutations) => {
   //           hideElements();
   //         });
-  //         
+  //
   //         observer.observe(document.body, {
   //           childList: true,
   //           subtree: true
@@ -197,9 +206,35 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription.cancel();
     _webViewController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkBiometricLock();
+    }
+  }
+
+  Future<void> _checkBiometricLock() async {
+    if (StorageService.instance.isBiometricEnabled) {
+      setState(() {
+        _isLocked = true;
+      });
+      _authenticate();
+    }
+  }
+
+  Future<void> _authenticate() async {
+    final bool authenticated = await BiometricService.instance.authenticate();
+    if (authenticated) {
+      setState(() {
+        _isLocked = false;
+      });
+    }
   }
 
   @override
@@ -230,131 +265,140 @@ class _WebViewScreenState extends State<WebViewScreen> {
               //   ],
               // ),
               body: _hasInternet
-                  ? Column(
-                      children: [
-                        // _webViewController.progress < 1.0
-                        //     ? LinearProgressIndicator(
-                        //         value: _webViewController.progress,
-                        //         backgroundColor: Colors.grey[200],
-                        //         valueColor: const AlwaysStoppedAnimation<Color>(Colors.deepPurple),
-                        //       )
-                        //     : const SizedBox.shrink(),
-                        Expanded(
-                          child: InAppWebView(
-                            initialUrlRequest: URLRequest(
-                              url: WebUri(_navController.getCurrentUrl()),
-                            ),
-                            pullToRefreshController: _pullToRefreshController,
-                            initialSettings: InAppWebViewSettings(
-                              useShouldOverrideUrlLoading: true,
-                              mediaPlaybackRequiresUserGesture: false,
-                              javaScriptEnabled: true,
-                              javaScriptCanOpenWindowsAutomatically: true,
-                              useHybridComposition: true,
-                              clearCache: false,
-                              cacheEnabled: true,
-                              thirdPartyCookiesEnabled: true,
-                              allowFileAccess: true,
-                              supportZoom: false,
-                            ),
-                            onWebViewCreated: (controller) async {
-                              _webViewController.setWebViewController(
-                                controller,
-                              );
+                  ? _navController.isCurrentTabNative()
+                        ? const SettingsScreen()
+                        : Column(
+                            children: [
+                              // _webViewController.progress < 1.0
+                              //     ? LinearProgressIndicator(
+                              //         value: _webViewController.progress,
+                              //         backgroundColor: Colors.grey[200],
+                              //         valueColor: const AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                              //       )
+                              //     : const SizedBox.shrink(),
+                              Expanded(
+                                child: InAppWebView(
+                                  initialUrlRequest: URLRequest(
+                                    url: WebUri(_navController.getCurrentUrl()),
+                                  ),
+                                  pullToRefreshController:
+                                      _pullToRefreshController,
+                                  initialSettings: InAppWebViewSettings(
+                                    useShouldOverrideUrlLoading: true,
+                                    mediaPlaybackRequiresUserGesture: false,
+                                    javaScriptEnabled: true,
+                                    javaScriptCanOpenWindowsAutomatically: true,
+                                    useHybridComposition: true,
+                                    clearCache: false,
+                                    cacheEnabled: true,
+                                    thirdPartyCookiesEnabled: true,
+                                    allowFileAccess: true,
+                                    supportZoom: false,
+                                  ),
+                                  onWebViewCreated: (controller) async {
+                                    _webViewController.setWebViewController(
+                                      controller,
+                                    );
 
-                              // Add JavaScript handler to detect logout/login events
-                              controller.addJavaScriptHandler(
-                                handlerName: 'authEventHandler',
-                                callback: (args) {
-                                  // Handle auth events
-                                  if (mounted) {
-                                    controller.reload();
-                                  }
-                                },
-                              );
-                            },
-                            shouldOverrideUrlLoading:
-                                (controller, navigationAction) async {
-                                  var uri = navigationAction.request.url;
+                                    // Add JavaScript handler to detect logout/login events
+                                    controller.addJavaScriptHandler(
+                                      handlerName: 'authEventHandler',
+                                      callback: (args) {
+                                        // Handle auth events
+                                        if (mounted) {
+                                          controller.reload();
+                                        }
+                                      },
+                                    );
+                                  },
+                                  shouldOverrideUrlLoading:
+                                      (controller, navigationAction) async {
+                                        var uri = navigationAction.request.url;
 
-                                  if (uri != null) {
-                                    String urlString = uri
-                                        .toString()
-                                        .toLowerCase();
+                                        if (uri != null) {
+                                          String urlString = uri
+                                              .toString()
+                                              .toLowerCase();
 
-                                    // Allow navigation but check if coming from login with from_url
-                                    if (urlString.contains('from_url=') &&
-                                        !urlString.contains('/login')) {
-                                      // User successfully logged in, extract the from_url and navigate there
-                                      var fromUrl = Uri.parse(
-                                        uri.toString(),
-                                      ).queryParameters['from_url'];
-                                      if (fromUrl != null) {
-                                        Future.delayed(
-                                          const Duration(milliseconds: 500),
-                                          () {
-                                            controller.loadUrl(
-                                              urlRequest: URLRequest(
-                                                url: WebUri(fromUrl),
-                                              ),
-                                            );
-                                          },
+                                          // Allow navigation but check if coming from login with from_url
+                                          if (urlString.contains('from_url=') &&
+                                              !urlString.contains('/login')) {
+                                            // User successfully logged in, extract the from_url and navigate there
+                                            var fromUrl = Uri.parse(
+                                              uri.toString(),
+                                            ).queryParameters['from_url'];
+                                            if (fromUrl != null) {
+                                              Future.delayed(
+                                                const Duration(
+                                                  milliseconds: 500,
+                                                ),
+                                                () {
+                                                  controller.loadUrl(
+                                                    urlRequest: URLRequest(
+                                                      url: WebUri(fromUrl),
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          }
+                                        }
+
+                                        return NavigationActionPolicy.ALLOW;
+                                      },
+                                  onLoadStart: (controller, url) {
+                                    setState(() {
+                                      _webViewController.updateProgress(0);
+                                    });
+                                    // Check if user is being redirected to login/signup pages
+                                    if (url != null) {
+                                      String urlString = url
+                                          .toString()
+                                          .toLowerCase();
+                                      if (urlString.contains('/login') ||
+                                          urlString.contains('/signin') ||
+                                          urlString.contains('/signup') ||
+                                          urlString.contains('/register')) {
+                                        // On auth page - hide navbar
+                                        setState(() {
+                                          _isOnAuthPage = true;
+                                        });
+                                      } else {
+                                        setState(() {
+                                          _isOnAuthPage = false;
+                                        });
+                                        _updateSelectedTabFromUrl(
+                                          url.toString(),
                                         );
                                       }
                                     }
-                                  }
+                                  },
+                                  onProgressChanged: (controller, progress) {
+                                    if (progress == 100) {
+                                      _pullToRefreshController.endRefreshing();
+                                    }
+                                    setState(() {
+                                      _webViewController.updateProgress(
+                                        progress.toDouble(),
+                                      );
+                                    });
+                                  },
+                                  onLoadStop: (controller, url) async {
+                                    _pullToRefreshController.endRefreshing();
+                                    setState(() {
+                                      _webViewController.updateProgress(100);
+                                    });
+                                    // Hide splash if it's still showing
+                                    if (_showSplash) {
+                                      setState(() {
+                                        _showSplash = false;
+                                      });
+                                    }
 
-                                  return NavigationActionPolicy.ALLOW;
-                                },
-                            onLoadStart: (controller, url) {
-                              setState(() {
-                                _webViewController.updateProgress(0);
-                              });
-                              // Check if user is being redirected to login/signup pages
-                              if (url != null) {
-                                String urlString = url.toString().toLowerCase();
-                                if (urlString.contains('/login') ||
-                                    urlString.contains('/signin') ||
-                                    urlString.contains('/signup') ||
-                                    urlString.contains('/register')) {
-                                  // On auth page - hide navbar
-                                  setState(() {
-                                    _isOnAuthPage = true;
-                                  });
-                                } else {
-                                  setState(() {
-                                    _isOnAuthPage = false;
-                                  });
-                                  _updateSelectedTabFromUrl(url.toString());
-                                }
-                              }
-                            },
-                            onProgressChanged: (controller, progress) {
-                              if (progress == 100) {
-                                _pullToRefreshController.endRefreshing();
-                              }
-                              setState(() {
-                                _webViewController.updateProgress(
-                                  progress.toDouble(),
-                                );
-                              });
-                            },
-                            onLoadStop: (controller, url) async {
-                              _pullToRefreshController.endRefreshing();
-                              setState(() {
-                                _webViewController.updateProgress(100);
-                              });
-                              // Hide splash if it's still showing
-                              if (_showSplash) {
-                                setState(() {
-                                  _showSplash = false;
-                                });
-                              }
-
-                              // Inject JavaScript to monitor logout button clicks only
-                              try {
-                                await controller.evaluateJavascript(
-                                  source: """
+                                    // Inject JavaScript to monitor logout button clicks only
+                                    try {
+                                      await controller.evaluateJavascript(
+                                        source: """
                         (function() {
                           if (window.authListenerAdded) return;
                           window.authListenerAdded = true;
@@ -384,69 +428,80 @@ class _WebViewScreenState extends State<WebViewScreen> {
                           }, true);
                         })();
                       """,
-                                );
-                              } catch (e) {
-                                // Ignore JavaScript injection errors
-                              }
+                                      );
+                                    } catch (e) {
+                                      // Ignore JavaScript injection errors
+                                    }
 
-                              // Inject JavaScript to hide social login options
-                              // await _hideSocialLoginOptions(controller);
+                                    // Inject JavaScript to hide social login options
+                                    // await _hideSocialLoginOptions(controller);
 
-                              // Check if on login/auth pages after logout
-                              if (url != null) {
-                                String urlString = url.toString().toLowerCase();
-                                // If user lands on login/signup page, they likely logged out
-                                if (urlString.contains('/login') ||
-                                    urlString.contains('/signin') ||
-                                    urlString.contains('/signup') ||
-                                    urlString.contains('/register') ||
-                                    urlString.contains('/auth')) {
-                                  // On auth page - hide navbar and reset to dashboard tab
-                                  setState(() {
-                                    _isOnAuthPage = true;
-                                    _navController.updateIndex(0);
-                                  });
-                                } else {
-                                  // Not on auth page - show navbar
-                                  setState(() {
-                                    _isOnAuthPage = false;
-                                  });
-                                  // Update selected tab based on current URL
-                                  _updateSelectedTabFromUrl(url.toString());
-                                }
-                              }
-                            },
-                            onReceivedError: (controller, request, error) {
-                              _pullToRefreshController.endRefreshing();
-                            },
-                            onUpdateVisitedHistory: (controller, url, androidIsReload) {
-                              // This fires when URL changes (including back/forward navigation)
-                              if (url != null) {
-                                String urlString = url.toString().toLowerCase();
+                                    // Check if on login/auth pages after logout
+                                    if (url != null) {
+                                      String urlString = url
+                                          .toString()
+                                          .toLowerCase();
+                                      // If user lands on login/signup page, they likely logged out
+                                      if (urlString.contains('/login') ||
+                                          urlString.contains('/signin') ||
+                                          urlString.contains('/signup') ||
+                                          urlString.contains('/register') ||
+                                          urlString.contains('/auth')) {
+                                        // On auth page - hide navbar and reset to dashboard tab
+                                        setState(() {
+                                          _isOnAuthPage = true;
+                                          _navController.updateIndex(0);
+                                        });
+                                      } else {
+                                        // Not on auth page - show navbar
+                                        setState(() {
+                                          _isOnAuthPage = false;
+                                        });
+                                        // Update selected tab based on current URL
+                                        _updateSelectedTabFromUrl(
+                                          url.toString(),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  onReceivedError:
+                                      (controller, request, error) {
+                                        _pullToRefreshController
+                                            .endRefreshing();
+                                      },
+                                  onUpdateVisitedHistory:
+                                      (controller, url, androidIsReload) {
+                                        // This fires when URL changes (including back/forward navigation)
+                                        if (url != null) {
+                                          String urlString = url
+                                              .toString()
+                                              .toLowerCase();
 
-                                // Check if on auth page
-                                if (urlString.contains('/login') ||
-                                    urlString.contains('/signin') ||
-                                    urlString.contains('/signup') ||
-                                    urlString.contains('/register') ||
-                                    urlString.contains('/auth')) {
-                                  // On auth page - hide navbar
-                                  setState(() {
-                                    _isOnAuthPage = true;
-                                  });
-                                } else {
-                                  // Not on auth page - show navbar and update tab
-                                  setState(() {
-                                    _isOnAuthPage = false;
-                                  });
-                                  _updateSelectedTabFromUrl(url.toString());
-                                }
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    )
+                                          // Check if on auth page
+                                          if (urlString.contains('/login') ||
+                                              urlString.contains('/signin') ||
+                                              urlString.contains('/signup') ||
+                                              urlString.contains('/register') ||
+                                              urlString.contains('/auth')) {
+                                            // On auth page - hide navbar
+                                            setState(() {
+                                              _isOnAuthPage = true;
+                                            });
+                                          } else {
+                                            // Not on auth page - show navbar and update tab
+                                            setState(() {
+                                              _isOnAuthPage = false;
+                                            });
+                                            _updateSelectedTabFromUrl(
+                                              url.toString(),
+                                            );
+                                          }
+                                        }
+                                      },
+                                ),
+                              ),
+                            ],
+                          )
                   : NoInternetWidget(onRetry: _handleRetry),
               extendBody: true,
               bottomNavigationBar: (_hasInternet && !_showSplash)
@@ -507,6 +562,61 @@ class _WebViewScreenState extends State<WebViewScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          if (_isLocked)
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.white,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.lock_outline,
+                      size: 80,
+                      color: Color(0xFF00C7F4),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'App Locked',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Authentication required to access Finbos',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    ElevatedButton.icon(
+                      onPressed: _authenticate,
+                      icon: const Icon(Icons.fingerprint),
+                      label: const Text('Unlock Now'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00C7F4),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],

@@ -61,5 +61,7 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Finbos uses Face ID to secure your financial data and prevent unauthorized access.</string>
 </dict>
 </plist>
