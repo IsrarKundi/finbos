@@ -1,5 +1,6 @@
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class BiometricService {
   static final BiometricService instance = BiometricService._();
@@ -25,7 +26,10 @@ class BiometricService {
       );
       return didAuthenticate;
     } on PlatformException catch (e) {
-      print('Error during biometric auth: $e');
+      // Log error for debugging, but for the user return false
+      // so they can try again or see the locked state.
+      // Common errors: NotAvailable, NotEnrolled, PasscodeNotSet
+      debugPrint('Biometric Auth Error: ${e.code} - ${e.message}');
       return false;
     }
   }
