@@ -13,20 +13,21 @@ class FancyBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 20,
-            color: Colors.black.withOpacity(0.1),
-            offset: const Offset(0, 10),
-          )
-        ],
-      ),
-      child: SafeArea(
+    return SafeArea(
+      bottom: true,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 20,
+              color: Colors.black.withOpacity(0.1),
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 7),
           child: GNav(
@@ -37,26 +38,14 @@ class FancyBottomNavBar extends StatelessWidget {
             iconSize: 22,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             duration: const Duration(milliseconds: 500),
-            tabBackgroundColor: Color.fromARGB(255, 0, 199, 244),
-            color: Color.fromARGB(255, 0, 199, 244),
-            tabBorderRadius: 30, 
-            tabs: const [ 
-              GButton(
-                icon: Icons.dashboard_rounded,
-                text: 'Home',
-              ),
-              GButton(
-                icon: Icons.receipt_long_rounded,
-                text: 'Transactions',
-              ),
-              GButton(
-                icon: Icons.psychology_rounded,
-                text: 'AI',
-              ),
-              GButton(
-                icon: Icons.settings_rounded,
-                text: 'Settings',
-              ),
+            tabBackgroundColor: const Color.fromARGB(255, 0, 199, 244),
+            color: const Color.fromARGB(255, 0, 199, 244),
+            tabBorderRadius: 30,
+            tabs: const [
+              GButton(icon: Icons.dashboard_rounded, text: 'Home'),
+              GButton(icon: Icons.receipt_long_rounded, text: 'Transactions'),
+              GButton(icon: Icons.psychology_rounded, text: 'AI'),
+              GButton(icon: Icons.settings_rounded, text: 'Settings'),
             ],
             selectedIndex: selectedIndex,
             onTabChange: onTabChange,

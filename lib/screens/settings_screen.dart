@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../widgets/in_app_webview_page.dart';
 import '../services/storage_service.dart';
 import '../services/biometric_service.dart';
+import 'onboarding_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Professional sharing message
   final String _shareText =
-      "Check out Finbos - Finance with AI! Manage your transactions and get AI insights effortlessly. Download now: https://finbos.app";
+      "Check out Finbos - Finance with AI! Manage your transactions and get AI insights effortlessly. Download now: https://apps.apple.com/app/id6754824262";
 
   void _openInternalUrl(String url, String title) {
     Navigator.of(context).push(
@@ -136,8 +137,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: const Icon(Icons.chevron_right, color: Colors.grey),
               ),
               _buildSettingTile(
+                icon: LineIcons.play,
+                title: 'Show Onboarding',
+                subtitle: 'Re-watch the introduction',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const OnboardingScreen(),
+                    ),
+                  );
+                },
+              ),
+              _buildSettingTile(
                 icon: LineIcons.fileContract,
-                title: 'Terms & Privacy',
+                title: 'Privacy Policy',
                 subtitle: 'Read our policies',
                 onTap: () => _openInternalUrl(
                   'https://finbos.app/PrivacyPolicy',

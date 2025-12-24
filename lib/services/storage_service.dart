@@ -5,6 +5,7 @@ class StorageService {
   StorageService._();
 
   static const String _keyBiometricEnabled = 'biometric_enabled';
+  static const String _keyHasSeenOnboarding = 'has_seen_onboarding';
 
   late SharedPreferences _prefs;
 
@@ -16,5 +17,11 @@ class StorageService {
 
   Future<void> setBiometricEnabled(bool value) async {
     await _prefs.setBool(_keyBiometricEnabled, value);
+  }
+
+  bool get hasSeenOnboarding => _prefs.getBool(_keyHasSeenOnboarding) ?? false;
+
+  Future<void> setHasSeenOnboarding(bool value) async {
+    await _prefs.setBool(_keyHasSeenOnboarding, value);
   }
 }

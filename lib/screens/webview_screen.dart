@@ -12,7 +12,8 @@ import '../services/storage_service.dart';
 import '../services/biometric_service.dart';
 
 class WebViewScreen extends StatefulWidget {
-  const WebViewScreen({super.key});
+  final bool showInitialSplash;
+  const WebViewScreen({super.key, this.showInitialSplash = true});
 
   @override
   State<WebViewScreen> createState() => _WebViewScreenState();
@@ -35,21 +36,28 @@ class _WebViewScreenState extends State<WebViewScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Ensure splash is visible at start
+    // Ensure splash is visible at start if requested
     setState(() {
-      _showSplash = true;
+      _showSplash = widget.showInitialSplash;
     });
 
-    // Check for biometric lock on startup
-    _checkBiometricLock();
-
-    // Set status bar for splash screen
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF4DDAFA), // Match splash cyan color
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+    if (_showSplash) {
+      // Set status bar for splash screen
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Color(0xFF4DDAFA), // Match splash cyan color
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      );
+    } else {
+      // Reset status bar immediately if no splash
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      );
+    }
 
     _checkInternetConnection();
     _setupConnectivityListener();
@@ -62,20 +70,22 @@ class _WebViewScreenState extends State<WebViewScreen>
     );
 
     // Hide splash after minimum time
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() {
-          _showSplash = false;
-        });
-        // Reset status bar after splash
-        SystemChrome.setSystemUIOverlayStyle(
-          const SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-          ),
-        );
-      }
-    });
+    if (_showSplash) {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _showSplash = false;
+          });
+          // Reset status bar after splash
+          SystemChrome.setSystemUIOverlayStyle(
+            const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
+            ),
+          );
+        }
+      });
+    }
   }
 
   Future<void> _checkInternetConnection() async {
@@ -249,25 +259,27 @@ class _WebViewScreenState extends State<WebViewScreen>
       },
       child: Stack(
         children: [
-          SafeArea(
-            child: Scaffold(
-              backgroundColor: Colors.grey[50],
-              // appBar: AppBar(
-              //   title: const Text('Finbos'),
-              //   backgroundColor: Colors.deepPurple,
-              //   foregroundColor: Colors.white,
-              //   elevation: 0,
-              //   actions: [
-              //     IconButton(
-              //       icon: const Icon(Icons.refresh),
-              //       onPressed: () => _webViewController.reload(),
-              //     ),
-              //   ],
-              // ),
-              body: _hasInternet
-                  ? _navController.isCurrentTabNative()
-                        ? const SettingsScreen()
-                        : Column(
+          Scaffold(
+            backgroundColor: Colors.grey[50],
+            // appBar: AppBar(
+            //   title: const Text('Finbos'),
+            //   backgroundColor: Colors.deepPurple,
+            //   foregroundColor: Colors.white,
+            //   elevation: 0,
+            //   actions: [
+            //     IconButton(
+            //       icon: const Icon(Icons.refresh),
+            //       onPressed: () => _webViewController.reload(),
+            //     ),
+            //   ],
+            // ),
+            body: _hasInternet
+                ? _navController.isCurrentTabNative()
+                      ? const SettingsScreen()
+                      : SafeArea(
+                          top: true,
+                          bottom: false,
+                          child: Column(
                             children: [
                               // _webViewController.progress < 1.0
                               //     ? LinearProgressIndicator(
@@ -501,16 +513,16 @@ class _WebViewScreenState extends State<WebViewScreen>
                                 ),
                               ),
                             ],
-                          )
-                  : NoInternetWidget(onRetry: _handleRetry),
-              extendBody: true,
-              bottomNavigationBar: (_hasInternet && !_showSplash)
-                  ? FancyBottomNavBar(
-                      selectedIndex: _navController.selectedIndex,
-                      onTabChange: _onTabChange,
-                    )
-                  : null,
-            ),
+                          ),
+                        )
+                : NoInternetWidget(onRetry: _handleRetry),
+            extendBody: true,
+            bottomNavigationBar: (_hasInternet && !_showSplash)
+                ? FancyBottomNavBar(
+                    selectedIndex: _navController.selectedIndex,
+                    onTabChange: _onTabChange,
+                  )
+                : null,
           ),
           // Splash overlay - MUST BE LAST to be on top
           if (_showSplash)

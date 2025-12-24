@@ -1,0 +1,13 @@
+Analyzing finbos...                                             
+
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/onboarding_screen.dart:180:34 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/onboarding_screen.dart:182:34 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen.dart:187:46 • deprecated_member_use
+warning • The value of the field '_isOnAuthPage' isn't used • lib/screens/webview_screen.dart:29:8 • unused_field
+   info • 'WillPopScope' is deprecated and shouldn't be used. Use PopScope instead. The Android predictive back feature will not work with WillPopScope. This feature was deprecated after v3.12.0-1.0.pre • lib/screens/webview_screen.dart:242:12 • deprecated_member_use
+   info • Don't invoke 'print' in production code • lib/services/biometric_service.dart:28:7 • avoid_print
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/fancy_bottom_nav_bar.dart:24:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/fancy_bottom_nav_bar.dart:33:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/fancy_bottom_nav_bar.dart:34:43 • deprecated_member_use
+
+9 issues found. (ran in 7.1s)
