@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../controllers/webview_controller.dart' as controllers;
@@ -21,10 +22,10 @@ class WebViewScreen extends StatefulWidget {
 
 class _WebViewScreenState extends State<WebViewScreen>
     with WidgetsBindingObserver {
+  final BottomNavController _navController = BottomNavController();
   final controllers.WebViewController _webViewController =
       controllers.WebViewController();
-  final BottomNavController _navController = BottomNavController();
-  late PullToRefreshController _pullToRefreshController;
+  PullToRefreshController? _pullToRefreshController;
   bool _showSplash = true;
   bool _hasInternet = true;
   bool _isOnAuthPage = false;
@@ -62,12 +63,14 @@ class _WebViewScreenState extends State<WebViewScreen>
     _checkInternetConnection();
     _setupConnectivityListener();
 
-    _pullToRefreshController = PullToRefreshController(
-      settings: PullToRefreshSettings(color: Colors.deepPurple),
-      onRefresh: () async {
-        await _webViewController.reload();
-      },
-    );
+    if (!kIsWeb) {
+      _pullToRefreshController = PullToRefreshController(
+        settings: PullToRefreshSettings(color: Colors.deepPurple),
+        onRefresh: () async {
+          await _webViewController.reload();
+        },
+      );
+    }
 
     // Hide splash after minimum time
     if (_showSplash) {
@@ -293,8 +296,9 @@ class _WebViewScreenState extends State<WebViewScreen>
                                   initialUrlRequest: URLRequest(
                                     url: WebUri(_navController.getCurrentUrl()),
                                   ),
-                                  pullToRefreshController:
-                                      _pullToRefreshController,
+                                  pullToRefreshController: kIsWeb
+                                      ? null
+                                      : _pullToRefreshController,
                                   initialSettings: InAppWebViewSettings(
                                     useShouldOverrideUrlLoading: true,
                                     mediaPlaybackRequiresUserGesture: false,
@@ -387,7 +391,7 @@ class _WebViewScreenState extends State<WebViewScreen>
                                   },
                                   onProgressChanged: (controller, progress) {
                                     if (progress == 100) {
-                                      _pullToRefreshController.endRefreshing();
+                                      _pullToRefreshController?.endRefreshing();
                                     }
                                     setState(() {
                                       _webViewController.updateProgress(
@@ -396,7 +400,7 @@ class _WebViewScreenState extends State<WebViewScreen>
                                     });
                                   },
                                   onLoadStop: (controller, url) async {
-                                    _pullToRefreshController.endRefreshing();
+                                    _pullToRefreshController?.endRefreshing();
                                     setState(() {
                                       _webViewController.updateProgress(100);
                                     });
@@ -479,7 +483,7 @@ class _WebViewScreenState extends State<WebViewScreen>
                                   onReceivedError:
                                       (controller, request, error) {
                                         _pullToRefreshController
-                                            .endRefreshing();
+                                            ?.endRefreshing();
                                       },
                                   onUpdateVisitedHistory:
                                       (controller, url, androidIsReload) {

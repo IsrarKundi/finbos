@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/webview_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -18,7 +19,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Push Notification Service (Android only)
-  if (Platform.isAndroid) {
+  if (!kIsWeb && Platform.isAndroid) {
     await PushNotificationService.instance.initialize();
   }
 

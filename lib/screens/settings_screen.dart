@@ -153,7 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Privacy Policy',
                 subtitle: 'Read our policies',
                 onTap: () => _openInternalUrl(
-                  'https://www.termsfeed.com/live/436bd4ba-e3e3-46d8-bad8-69eec258a2fa',
+                  'https://finbos.app/PrivacyPolicy',
                   'Privacy Policy',
                 ),
               ),
